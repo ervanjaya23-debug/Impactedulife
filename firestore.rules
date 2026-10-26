@@ -1,0 +1,87 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Helper to get requesting user profile
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    // Check if user is in the given school
+    function isMemberOfSchool(schoolId) {
+      return isAuthenticated() && (
+        request.auth.uid in ["admin", "superadmin"] ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         getUserData().schoolId == schoolId)
+      );
+    }
+
+    // Schools Collection
+    match /schools/{schoolId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated();
+      allow delete: if false;
+    }
+
+    // Users Collection
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated() && (
+        request.auth.uid == userId ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         getUserData().role in ["SCHOOL_ADMIN", "PRINCIPAL", "SUPER_ADMIN"])
+      );
+      allow delete: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Tasks Collection (Multi-Tenant Isolated)
+    match /tasks/{taskId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && 
+        request.resource.data.createdBy == request.auth.uid &&
+        request.resource.data.schoolId is string;
+      allow update: if isAuthenticated() && (
+        resource.data.createdBy == request.auth.uid ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         getUserData().schoolId == resource.data.schoolId &&
+         getUserData().role in ["TEACHER", "PRINCIPAL", "SCHOOL_ADMIN"])
+      );
+      allow delete: if isAuthenticated() && (
+        resource.data.createdBy == request.auth.uid ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         getUserData().schoolId == resource.data.schoolId &&
+         getUserData().role in ["TEACHER", "PRINCIPAL", "SCHOOL_ADMIN"])
+      );
+    }
+
+    // Task Submissions Collection
+    match /task_submissions/{submissionId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated() && (
+        request.resource.data.userId == request.auth.uid ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         getUserData().schoolId == request.resource.data.schoolId &&
+         getUserData().role in ["TEACHER", "PRINCIPAL", "SCHOOL_ADMIN"])
+      );
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // Nudges (Colekan) Collection
+    match /nudges/{nudgeId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && 
+        request.resource.data.fromUserId == request.auth.uid &&
+        request.resource.data.schoolId is string;
+      allow update, delete: if isAuthenticated() && 
+        resource.data.fromUserId == request.auth.uid;
+    }
+  }
+}

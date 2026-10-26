@@ -1,0 +1,6 @@
+{
+  "name": "Colek",
+  "description": "Pengingat tugas sekolah berbasis alarm multi-sekolah dengan fitur colek santun, tugas guru oleh kepala sekolah, dan streak kedisiplinan.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,6 @@
+{
+  "summary":  "Revisi rencana arsitektur aplikasi 'Colek': penamaan resmi aplikasi menjadi 'Colek', penambahan peran Kepala Sekolah (Principal) dengan modul penugasan administrasi guru (Modul Ajar, Nilai Raport, dsb.), fitur 'Colek Guru' santun & profesional, serta dashboard supervisi kinerja guru sekolah.",
+  "updatedAt":  "2026-10-23T06:34:00.916131482Z",
+  "requestFeedback":  true,
+  "userFacing":  true
+}

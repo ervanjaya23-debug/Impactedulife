@@ -1,0 +1,143 @@
+{
+  "entities": {
+    "School": {
+      "title": "School",
+      "description": "Institusi sekolah sebagai entitas tenant",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "inviteCode": { "type": "string" },
+        "principalName": { "type": "string" },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "inviteCode", "isActive"]
+    },
+    "User": {
+      "title": "User",
+      "description": "Profil pengguna mencakup Kepala Sekolah, Guru, Siswa, dan Admin",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoUrl": { "type": "string" },
+        "schoolId": { "type": "string" },
+        "role": {
+          "type": "string",
+          "enum": ["STUDENT", "TEACHER", "PRINCIPAL", "SCHOOL_ADMIN", "SUPER_ADMIN"]
+        },
+        "status": {
+          "type": "string",
+          "enum": ["PENDING", "ACTIVE", "SUSPENDED"]
+        },
+        "className": { "type": "string" },
+        "subjectSpecialty": { "type": "string" },
+        "streakCount": { "type": "number" },
+        "lastActiveDate": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "email", "displayName", "schoolId", "role", "status"]
+    },
+    "Task": {
+      "title": "Task",
+      "description": "Tugas pelajaran untuk siswa atau tugas administrasi dari kepala sekolah untuk guru",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "schoolId": { "type": "string" },
+        "createdBy": { "type": "string" },
+        "creatorRole": { "type": "string" },
+        "creatorName": { "type": "string" },
+        "scope": {
+          "type": "string",
+          "enum": ["TEACHER_TASK", "STUDENT_TASK", "PERSONAL_TASK"]
+        },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "subjectOrCategory": { "type": "string" },
+        "targetFilter": { "type": "string" },
+        "priority": {
+          "type": "string",
+          "enum": ["LOW", "MEDIUM", "HIGH"]
+        },
+        "dueDate": { "type": "string", "format": "date-time" },
+        "reminderOffsets": {
+          "type": "array",
+          "items": { "type": "number" }
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "schoolId", "createdBy", "scope", "title", "dueDate", "priority"]
+    },
+    "TaskSubmission": {
+      "title": "TaskSubmission",
+      "description": "Status pengerjaan tugas oleh siswa atau guru",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "taskId": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "schoolId": { "type": "string" },
+        "userRole": { "type": "string" },
+        "status": {
+          "type": "string",
+          "enum": ["IN_PROGRESS", "COMPLETED", "LATE"]
+        },
+        "completedAt": { "type": "string", "format": "date-time" },
+        "isOntime": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "taskId", "userId", "schoolId", "status"]
+    },
+    "Nudge": {
+      "title": "Nudge",
+      "description": "Colekan ramah antar-siswa atau dari kepala sekolah ke guru",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "schoolId": { "type": "string" },
+        "fromUserId": { "type": "string" },
+        "fromUserName": { "type": "string" },
+        "fromRole": { "type": "string" },
+        "toUserId": { "type": "string" },
+        "toUserName": { "type": "string" },
+        "toRole": { "type": "string" },
+        "nudgeType": {
+          "type": "string",
+          "enum": ["PEER_STUDENT", "TEACHER_TO_STUDENT", "PRINCIPAL_TO_TEACHER"]
+        },
+        "taskId": { "type": "string" },
+        "taskTitle": { "type": "string" },
+        "templateText": { "type": "string" },
+        "sentAt": { "type": "string", "format": "date-time" },
+        "dateKey": { "type": "string" }
+      },
+      "required": ["id", "schoolId", "fromUserId", "toUserId", "taskId", "templateText", "dateKey"]
+    }
+  },
+  "firestore": {
+    "/schools/{schoolId}": {
+      "schema": { "$ref": "#/entities/School" },
+      "description": "Daftar sekolah terdaftar"
+    },
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Profil pengguna yang terikat pada sekolah"
+    },
+    "/tasks/{taskId}": {
+      "schema": { "$ref": "#/entities/Task" },
+      "description": "Daftar tugas terisolasi per sekolah"
+    },
+    "/task_submissions/{submissionId}": {
+      "schema": { "$ref": "#/entities/TaskSubmission" },
+      "description": "Status pengerjaan tugas"
+    },
+    "/nudges/{nudgeId}": {
+      "schema": { "$ref": "#/entities/Nudge" },
+      "description": "Colekan ramah pengingat tugas berjenjang"
+    }
+  }
+}
